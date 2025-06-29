@@ -4,7 +4,6 @@ import os
 
 app = Flask(__name__)
 
-# গান লিস্ট (নাম ও ভিডিও আইডি)
 SONGS = [
     {"name": "Lofi Chill Beats", "id": "gYj9BWBLR2Q"},
     {"name": "Relaxing Piano", "id": "DWcJFNfaw9c"},
@@ -36,3 +35,7 @@ def stream(video_id):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([f'https://youtu.be/{video_id}'])
     return send_file(filename, mimetype='audio/mpeg')
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Render এ PORT নিতে হবে
+    app.run(host="0.0.0.0", port=port)
