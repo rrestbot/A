@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_file, request
+from flask import Flask, request, send_file
 import yt_dlp
 import os
 import uuid
@@ -7,21 +7,19 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "🎧 Music API is Running!"
+    return "🎧 YouTube MP3 API Working"
 
 @app.route("/stream-direct")
 def stream_direct():
-    yt_url = request.args.get("url")
-    if not yt_url:
-        return "URL missing", 400
+    url = request.args.get("url")
+    if not url:
+        return "Missing URL", 400
 
-    temp_id = str(uuid.uuid4())
-    filename = f"{temp_id}.mp3"
-
+    filename = f"{uuid.uuid4()}.mp3"
     ydl_opts = {
         'format': 'bestaudio/best',
         'quiet': True,
-        'outtmpl': f'{temp_id}.%(ext)s',
+        'outtmpl': f'{filename}',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -31,14 +29,15 @@ def stream_direct():
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([yt_url])
+            ydl.download([url])
         return send_file(filename, mimetype='audio/mpeg')
     except Exception as e:
-        return f"Download error: {e}", 500
+        return f"Error: {str(e)}", 500
     finally:
         if os.path.exists(filename):
             os.remove(filename)
 
 if __name__ == "__main__":
+    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
